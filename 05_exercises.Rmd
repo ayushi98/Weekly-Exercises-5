@@ -12,7 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -106,6 +106,7 @@ garden_harvest_lettuce<-
 ggplotly(garden_harvest_lettuce,
          tooltip = c("text", "x"))
 ```
+
 ```{r}
 garden_harvest_tomatoes<-
   garden_harvest %>% 
@@ -143,11 +144,11 @@ anim_save("small_trains_animate.gif", small_trains_animate)
 
 ```
 
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("small_trains_animate.gif")
 ```
 
-From this graph we see that in 2015 there were fewer departures than in 2016 or 2017. We also see that the percentage of National line delays are much lesser in 2015. 
+From this graph we see that in 2015 there were fewer departures than in 2016 or 2017. We also see that the percentage of National line delays are much lesser in 2017 than 2015. 
 
 ## Garden data
 
@@ -169,7 +170,7 @@ garden_harvest_animate <-
   mutate(daily_weight_lb = daily_weight_g*0.00220462,
          cum_weight_lb = cumsum(daily_weight_lb)) %>%
   select(-daily_weight_lb) %>% 
-  ggplot(aes(x = date, y = fct_reorder(variety, cum_weight_lb, .desc = TRUE)+
+  ggplot(aes(x = date, y = cum_weight_lb), position = position_stack())+
   geom_area(aes(fill = variety)) +
   labs(title = "Cumulative harvest of tomatoes over time",
        subtitle = "Date:{frame_along}",
@@ -183,13 +184,10 @@ anim_save("garden_harvest_animate.gif", garden_harvest_animate)
 ```
 
 
-
-
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("garden_harvest_animate.gif")
 ```
 
-  
 ## Maps, animation, and movement!
 
   4. Map my `mallorca_bike_day7` bike ride using animation! 
@@ -231,16 +229,19 @@ anim_save("bike_animate.gif", bike_animate)
 
 ```
   
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("bike_animate.gif")
 ```
+  
+I do prefer this to a static map, because it gives you exactly the route that was taken. While the static map provides a clear view of the elevation and route, the animation actually shows us how the trail was done and is more interactive.   
   
   5. In this exercise, you get to meet my sister, Heather! She is a proud Mac grad, currently works as a Data Scientist at 3M where she uses R everyday, and for a few years (while still holding a full-time job) she was a pro triathlete. You are going to map one of her races. The data from each discipline of the Ironman 70.3 Pan Am championships, Panama is in a separate file - `panama_swim`, `panama_bike`, and `panama_run`. Create a similar map to the one you created with my cycling data. You will need to make some small changes: 1. combine the files (HINT: `bind_rows()`, 2. make the leading dot a different color depending on the event (for an extra challenge, make it a different image using `geom_image()!), 3. CHALLENGE (optional): color by speed, which you will need to compute on your own from the data. You can read Heather's race report [here](https://heatherlendway.com/2016/02/10/ironman-70-3-pan-american-championships-panama-race-report/). She is also in the Macalester Athletics [Hall of Fame](https://athletics.macalester.edu/honors/hall-of-fame/heather-lendway/184) and still has records at the pool. 
   
 ```{r, eval=FAlSE}
-panama_all<-panama_swim %>% 
+panama_all<-
+  panama_swim %>% 
   bind_rows(panama_bike) %>% 
-  bind_rows(panama_run) %>% 
+  bind_rows(panama_run) 
   
 
 panama_map <- get_stamenmap(bbox = c(left = -79.56,
@@ -270,7 +271,7 @@ anim_save("panama_animation.gif", panama_animate)
   
 ```
 
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("panama_animation.gif")
 ```
   
@@ -283,7 +284,7 @@ knitr::include_graphics("panama_animation.gif")
   * Animate the plot to reveal the pattern by date. Display the date as the subtitle. Add a leading point to each state's line (`geom_point()`) and add the state name as a label (`geom_text()` - you should look at the `check_overlap` argument).  
   * Use the `animate()` function to have 200 frames in your animation and make it 30 seconds long. 
   * Comment on what you observe.
-```{r}
+```{r, eval=FALSE}
 covid2<-
   covid19 %>% 
   group_by(state) %>% 
@@ -291,11 +292,12 @@ covid2<-
   replace_na(list(lag7 = 0)) %>% 
   mutate(new_cases = cases-lag7) %>% 
   filter(cases>20) %>% 
-  ggplot()+
-  geom_path(aes(x = cases, y = new_cases, group = state)) +
-  geom_point(aes(x = cases, y = new_cases, color = state)) +
-  geom_text(aes(x = cases, y = new_cases, label = state)) +
+  ggplot(aes(x = cases, y = new_cases, group = state))+
+  geom_path(color = "grey") +
+  geom_point(color = "yellow") +
+  geom_text(aes(label = state), check_overlap = TRUE) +
   scale_x_log10(labels = scales::comma)+
+  scale_y_log10(labels = scales::comma)+
   labs(title = "COVID Cases per 10,000 persons by State",
        subtitle = "Date: {frame_along}",
        x = "Cumulative Cases",
@@ -307,9 +309,11 @@ animate(covid2, duration = 30, nframes = 300)
 anim_save("cov_cases.gif", covid2)
 ```
 
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("cov_cases.gif")
 ```
+  
+From this graph, we see that new covid cases increasing in May, and then eventually falling for some states, but states like Florida and California have increasing number of new cases even after there is a decrease in August/September. New York increases the most in May and then drops its new case count by June.   
   
   7. In this exercise you will animate a map of the US, showing how cumulative COVID-19 cases per 10,000 residents has changed over time. This is similar to exercises 11 & 12 from the previous exercises, with the added animation! So, in the end, you should have something like the static map you made there, but animated over all the days. Put date in the subtitle. Comment on what you see.
 
@@ -335,7 +339,7 @@ covid_map <- covid19_population %>%
   labs(title = "Cumulative COVID-19 cases per 10,000 people in the United States") +
   theme(legend.background = element_blank()) + 
   theme_map() +
-  scale_fill_viridis_c() +
+  scale_fill_viridis_c(option = "magma") +
   transition_states(date, transition_length = 0) +
   labs(subtitle = "Moving to {next_state}")
 animate(covid_map, duration = 30) 
@@ -343,10 +347,11 @@ animate(covid_map, duration = 30)
 anim_save("cov_cases1.gif", covid_map)
 ```
 
-```{r}
+```{r, echo=FALSE}
 knitr::include_graphics("cov_cases1.gif")
 ```
 
+Through this graph we see that there is a gradual increase in the COVID cases across the USA. Initially there is a drastic increase in New York in May, and then it spreads to the entire US.
 
 ## GitHub link
 
